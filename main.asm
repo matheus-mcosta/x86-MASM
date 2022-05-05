@@ -2,7 +2,7 @@
 ;====================================================================
 ;  V 1: receber nome do arquivo para leitura
 ;  V 2: abrir arquivo e contar numero de bytes lidos
-;   3: ler caractere por caractere e ir somando em 4 somas
+;  V 3: ler caractere por caractere e ir somando em 4 somas
 ;   4: fechar arquivo
 ;  V 5: imprimir numero de bytes lidos
 ;   6: imprimir resultado
@@ -37,6 +37,7 @@ MsgPedeArquivo	db	"Nome do arquivo para abrir: ", 0
 
 Buffer          dw        0         ; buffer registradores
 
+Somaindex		dw		0				; Index da soma
 Soma 			db 		4 dup (?)		; Soma dos caracteres
 
 Soma1           dw 		0
@@ -44,7 +45,8 @@ Soma2           dw 		0
 Soma3           dw 		0
 Soma4           dw 		0
 
-NumeroBytes           dw       0         ; numero de bytes lidos
+NumeroBytes           dw       0
+NumeroBytes2		  dw 	   0        ; numero de bytes lidos
 
 MsgErroOpenFile		db	"Erro na abertura do arquivo.", CR, LF, 0
 MsgErroCreateFile	db	"Erro na criacao do arquivo.", CR, LF, 0
@@ -52,7 +54,11 @@ MsgErroReadFile		db	"Erro na leitura do arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro na escrita do arquivo.", CR, LF, 0
 MsgCRLF				db	CR, LF, 0
 
+MsgSpace  			db		" ", 0
+
 MsgBytesLidos        db	"Bytes: ", 0
+
+MsgSoma				db	"Soma: ", 0
 
 MAXSTRING	equ		12
 String	db		MAXSTRING dup (?)
@@ -131,8 +137,24 @@ Next2:
 	cmp dl, '~'
 	jg 		Ciclo
 
-	add 	[Soma],dl
-	
+	mov     bx,[Somaindex]
+
+	add 	[Soma+bx],dl
+	inc		bx
+	cmp 	bx,3
+	jg 		ZeraIndex
+
+	mov		[Somaindex],bx
+
+	jmp		DepoisZera
+
+
+
+ZeraIndex:
+	mov 	bx, 0
+	mov 	[Somaindex],bx
+
+DepoisZera:
 	mov     bx, 1
     add     NumeroBytes, bx
 
@@ -165,8 +187,7 @@ Fim:
         lea     bx, MsgBytesLidos
         call    printf_s
 	
-		mov     ah, 0
-        mov		al,[Soma]
+		mov     ax,NumeroBytes
 		
 		lea		bx,String
 		call	sprintf_w
@@ -175,6 +196,49 @@ Fim:
 
 		lea		bx,String
 		call	printf_s
+
+		lea		bx, MsgCRLF
+	    call	printf_s
+
+		lea		bx, MsgSoma
+	    call	printf_s
+
+		mov     ah, 0
+        mov		al,[Soma]
+
+		call hex
+		
+	;	lea		bx,String
+	;	call	sprintf_w
+	;	lea		bx,String
+	;	call	printf_s
+
+		lea		bx, MsgSpace
+	    call	printf_s
+
+		mov     ah, 0
+        mov		al,[Soma+1]
+		
+		call hex
+
+		lea		bx, MsgSpace
+	    call	printf_s
+
+		mov     ah, 0
+        mov		al,[Soma+2]
+		
+		call hex
+
+		lea		bx, MsgSpace
+	    call	printf_s
+
+		mov     ah, 0
+        mov		al,[Soma+3]
+		
+		call hex
+
+
+
 
         .exit
 
@@ -407,6 +471,73 @@ setChar	proc	near
 	int		21h
 	ret
 setChar	endp	
+
+
+ hex proc near
+  
+;initialize count
+    mov cx, 0
+	mov dx, 0
+ label1:
+;if  ax is zero
+    cmp ax, 0
+	je print1
+  
+;initialize bx to 16 
+mov bx, 16
+  
+;divide it by 16
+;to convert it to Hexadecimal
+    div bx
+  
+;push it in the stack
+    push dx
+  
+;increment the count
+    inc cx
+  
+;set dx to 0
+    xor dx, dx
+    jmp label1
+print1:
+;check if count
+;is greater than zero
+    cmp cx,0 
+	je exit
+  
+;pop the top of stack
+    pop dx
+  
+;compare the value
+;with 9 
+cmp dx, 9 
+jle continue
+  
+;if value is greater than 9
+;then add 7 so that after
+;adding 48 it represents A
+;for example 10 + 7 + 48 = 65
+;which is ASCII value of A
+    add dx, 7
+  
+continue:
+  
+;add 48 so that it
+;represents the ASCII
+;value of digits
+    add dx,48
+  
+;interrupt to print a;
+
+    mov ah,02h 
+	int 21h
+  
+;decrease the count
+    dec cx
+    jmp print1
+ exit : 
+ ret
+hex endp
 
 ;--------------------------------------------------------------------
 		end
