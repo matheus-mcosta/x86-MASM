@@ -40,10 +40,7 @@ Buffer          dw        0         ; buffer registradores
 Somaindex		dw		0				; Index da soma
 Soma 			db 		4 dup (?)		; Soma dos caracteres
 
-Soma1           dw 		0
-Soma2           dw 		0
-Soma3           dw 		0
-Soma4           dw 		0
+Temps 			dw 		4 dup (?)		; Tempo de execucao
 
 NumeroBytes           dw       0
 NumeroBytes2		  dw 	   0        ; numero de bytes lidos
@@ -119,8 +116,11 @@ Ciclo:
 	mov		cx,1
 	lea		dx,FileBuffer
 	int		21h
-	mov		dl,FileBuffer
 
+	mov		dl,FileBuffer
+	
+
+fimgetChar:
     
 	jnc		Next2 
 
@@ -164,6 +164,8 @@ DepoisZera:
 
 
 Over:
+
+
 	mov	    bx, FileHandleDst
 	call 	setChar
 	jnc 	Ciclo
@@ -483,14 +485,7 @@ fclose	endp
 ;		AX -> numero de caracteres lidos
 ;		CF -> "0" se leitura ok
 ;--------------------------------------------------------------------
-getChar	proc	near
-	mov		ah,3fh
-	mov		cx,1
-	lea		dx,FileBuffer
-	int		21h
-	mov		dl,FileBuffer
-	ret
-getChar	endp
+
 		
 ;--------------------------------------------------------------------
 ;Entra: BX -> file handle
@@ -499,11 +494,57 @@ getChar	endp
 ;		CF -> "0" se escrita ok
 ;--------------------------------------------------------------------
 setChar	proc	near
+	mov		ah,0
+	mov al, dl
+	mov cx, 0
+	mov dx, 0
+
+label2:
+	cmp ax, 0
+	je print2
+
+	mov bx, 16
+	div bx
+	push dx
+	inc cx 
+
+	mov dx, 0
+	jmp label2
+
+print2:
+	cmp cx, 0
+	je exit2
+
+	pop dx
+
+	cmp dx, 9
+	jle continue2
+
+	add dx, 7
+
+continue2:
+	add dx, 48
+	mov [Temps], cx
+	mov [Temps+2], bx
+	
+
+
+
+	
+	mov  	bx, FileHandleDst
 	mov		ah,40h
 	mov		cx,1
+	mov     dh, 0
 	mov		FileBuffer,dl
 	lea		dx,FileBuffer
 	int		21h
+
+
+	mov bx, [Temps+2]
+	mov cx, [Temps]
+	dec cx
+	jmp print2
+exit2:
 	ret
 setChar	endp	
 
