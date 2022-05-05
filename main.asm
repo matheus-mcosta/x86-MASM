@@ -37,6 +37,7 @@ MsgPedeArquivo	db	"Nome do arquivo para abrir: ", 0
 
 Buffer          dw        0         ; buffer registradores
 
+Counter		  dw        0         ; contador para indentacao arquivo
 Somaindex		dw		0				; Index da soma
 Soma 			db 		4 dup (?)		; Soma dos caracteres
 
@@ -164,8 +165,31 @@ DepoisZera:
 
 
 Over:
+	mov 	bx, 1
+	add     Counter, bx
+	mov 	bx, [Counter]
+	cmp 	bx, 5
+	jne     Over2
+
+	mov 	[Temps+6], dx
+
+	mov 	dx, 15
+	mov	    bx, FileHandleDst
+	mov		ah,40h
+	mov		cx,1
+	
+	int		21h
 
 
+	mov		dx, 12
+	mov		ah,40h
+	mov		cx,1
+	
+	int		21h
+
+	mov 	dx, [Temps+6]
+
+Over2:
 	mov	    bx, FileHandleDst
 	call 	setChar
 	jnc 	Ciclo
