@@ -6,7 +6,7 @@
 ;   4: fechar arquivo
 ;  V 5: imprimir numero de bytes lidos
 ;   6: imprimir resultado
-;   7: converter hex para ascii
+;   V 7: converter hex para ascii
 ;   8: criar arquivo de saida (nome do arquivo antes do ponto + .res)
 ;   9: escrever resultado no arquivo de saida
 ;   10: fechar arquivo de saida
@@ -52,6 +52,8 @@ MsgErroOpenFile		db	"Erro na abertura do arquivo.", CR, LF, 0
 MsgErroCreateFile	db	"Erro na criacao do arquivo.", CR, LF, 0
 MsgErroReadFile		db	"Erro na leitura do arquivo.", CR, LF, 0
 MsgErroWriteFile	db	"Erro na escrita do arquivo.", CR, LF, 0
+
+MsgPlus  			db	" + ", 0
 MsgCRLF				db	CR, LF, 0
 
 MsgSpace  			db		" ", 0
@@ -70,7 +72,6 @@ sw_m	dw	0
 
     
 	
-    
 
     .code
 	.startup        
@@ -157,7 +158,12 @@ ZeraIndex:
 DepoisZera:
 	mov     bx, 1
     add     NumeroBytes, bx
+	JNO      Over
+	add     NumeroBytes, bx
+	add   NumeroBytes2, 65535
 
+
+Over:
 	mov	    bx, FileHandleDst
 	call 	setChar
 	jnc 	Ciclo
@@ -186,7 +192,22 @@ Fim:
 
         lea     bx, MsgBytesLidos
         call    printf_s
+
+		mov     ax,NumeroBytes2
+		cmp    ax,0
+		je		Fim2
+		
+		lea		bx,String
+		call	sprintf_w
+
+		; printf("%s", String);
+
+		lea		bx,String
+		call	printf_s
 	
+		 lea		bx, MsgPlus
+	    call	printf_s
+Fim2:	
 		mov     ax,NumeroBytes
 		
 		lea		bx,String
@@ -529,8 +550,11 @@ continue:
   
 ;interrupt to print a;
 
-    mov ah,02h 
+    mov ah,02h
 	int 21h
+	
+
+
   
 ;decrease the count
     dec cx
