@@ -3,13 +3,13 @@
 ;  V 1: receber nome do arquivo para leitura
 ;  V 2: abrir arquivo e contar numero de bytes lidos
 ;  V 3: ler caractere por caractere e ir somando em 4 somas
-;   4: fechar arquivo
+;  V 4: fechar arquivo
 ;  V 5: imprimir numero de bytes lidos
-;   6: imprimir resultado
-;   V 7: converter hex para ascii
-;   8: criar arquivo de saida (nome do arquivo antes do ponto + .res)
+;  V 6: imprimir resultado
+;  V 7: converter hex para ascii
+;  V 8: criar arquivo de saida (nome do arquivo antes do ponto + .res)
 ;   9: escrever resultado no arquivo de saida
-;   10: fechar arquivo de saida
+;  V 10: fechar arquivo de saida
 ;   
 
 ;====================================================================
@@ -41,7 +41,7 @@ Counter		  dw        0         ; contador para indentacao arquivo
 Somaindex		dw		0				; Index da soma
 Soma 			db 		4 dup (?)		; Soma dos caracteres
 
-Temps 			dw 		4 dup (?)		; Tempo de execucao
+Temps 			dw 		10 dup (?)		; Tempo de execucao
 
 NumeroBytes           dw       0
 NumeroBytes2		  dw 	   0        ; numero de bytes lidos
@@ -170,13 +170,15 @@ Over:
 	mov 	bx, [Counter]
 	cmp 	bx, 5
 	jne     Over2
+	mov 	bx, 1
+	mov 	[Counter],bx
 
 	mov 	[Temps+6], dx
 	mov	    bx, FileHandleDst
-	mov     dl, LF
-	call Linebreak
+	;mov     dl, LF
+	;call Linebreak
 
-	mov     dl, CR
+	mov     dl, CR    ; habilitando os 2 pulava 2 linhas
 	call Linebreak
 
 	mov 	dx, [Temps+6]
@@ -510,10 +512,31 @@ fclose	endp
 ;		CF -> "0" se escrita ok
 ;--------------------------------------------------------------------
 setChar	proc	near
-	mov		ah,0
+	mov	ah,0
 	mov al, dl
 	mov cx, 0
 	mov dx, 0
+
+	cmp al, 17
+	jnl label2
+
+	mov [Temps+8],ax
+
+
+	mov dl, 30h
+
+	mov  	bx, FileHandleDst
+	mov		ah,40h
+	mov		cx,1
+	mov     dh, 0
+	mov		FileBuffer,dl
+	lea		dx,FileBuffer
+	int		21h
+
+
+	mov cx, 0
+	mov dx, 0
+	mov ax, [Temps+8]
 
 label2:
 	cmp ax, 0
@@ -566,6 +589,23 @@ setChar	endp
 
 
  hex proc near
+
+	cmp ax,17
+	jnl divide
+
+	mov [Temps+7],ax
+
+	mov dx, 30h
+	mov ah,02h
+	int 21h
+
+	mov ax, [Temps+7]
+
+divide:
+
+	
+
+
   
 ;initialize count
     mov cx, 0
@@ -574,8 +614,11 @@ setChar	endp
 ;if  ax is zero
     cmp ax, 0
 	je print1
+	
+
   
 ;initialize bx to 16 
+
 mov bx, 16
   
 ;divide it by 16
