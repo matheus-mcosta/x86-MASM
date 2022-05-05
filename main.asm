@@ -1,4 +1,4 @@
-; Matheus de Moraes Costa 00297121
+; 
 ;====================================================================
 ;  V 1: receber nome do arquivo para leitura
 ;  V 2: abrir arquivo e contar numero de bytes lidos
