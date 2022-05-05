@@ -172,20 +172,12 @@ Over:
 	jne     Over2
 
 	mov 	[Temps+6], dx
-
-	mov 	dx, 15
 	mov	    bx, FileHandleDst
-	mov		ah,40h
-	mov		cx,1
-	
-	int		21h
+	mov     dl, LF
+	call Linebreak
 
-
-	mov		dx, 12
-	mov		ah,40h
-	mov		cx,1
-	
-	int		21h
+	mov     dl, CR
+	call Linebreak
 
 	mov 	dx, [Temps+6]
 
@@ -641,6 +633,16 @@ continue:
  exit : 
  ret
 hex endp
+
+
+Linebreak	proc	near
+	mov		ah,40h
+	mov		cx,1
+	mov		FileBuffer,dl
+	lea		dx,FileBuffer
+	int		21h
+	ret
+Linebreak	endp
 
 ;--------------------------------------------------------------------
 		end
