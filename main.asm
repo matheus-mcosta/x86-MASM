@@ -394,13 +394,27 @@ sprintf_w	endp
 
 GetFileNameDst	proc	near
 	;printf("Nome do arquivo destino: ");
-	lea		bx, MsgPedeArquivo
-	call	printf_s
-	
-	;gets(FileNameDst);
-	lea		bx, FileNameDst
-	call	gets
-	
+	lea  si, FileName
+	lea  di, FileNameDst
+
+Lx:
+    mov  al,[si]          
+    mov  [di],al           
+    inc  si              
+    inc  di
+    cmp byte ptr [di],0   ; Check for null terminator
+    jne Lx                 ; loop if not null
+
+	mov  [di],'.'
+	inc  di
+	mov  [di],'r'
+	inc  di
+	mov  [di],'e'
+	inc  di
+	mov  [di],'s'
+	inc  di
+	mov  [di],0
+
 	;printf("\r\n")
 	lea		bx, MsgCRLF
 	call	printf_s
