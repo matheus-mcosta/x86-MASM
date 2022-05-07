@@ -278,7 +278,38 @@ Fim2:
 		
 		call hex
 
+		mov		dh,0
+		mov		dl,30h
+		call    writeResult		
 
+		mov		dh,0
+		mov		dl,[Soma]
+		call    writeResult
+
+		mov		dh,0
+		mov     dl, 30h
+		
+		call    writeResult
+
+		mov		dh,0
+		mov     dl,[Soma+1]
+		call    writeResult
+
+		mov		dh,0
+		mov     dl,30h
+		call    writeResult
+
+		mov		dh,0
+		mov     dl,[Soma+2]
+		call    writeResult
+
+		mov		dh,0
+		mov     dl,30h
+		call    writeResult
+
+		mov		dh,0
+		mov     dl,[Soma+3]
+		call    writeResult
 
 
         .exit
@@ -587,7 +618,7 @@ exit2:
 	ret
 setChar	endp	
 
-
+	
  hex proc near
 
 	cmp ax,17
@@ -687,6 +718,57 @@ Linebreak	proc	near
 	ret
 Linebreak	endp
 
+writeResult	proc	near
+
+
+label3:
+	cmp ax, 0
+	je print3
+
+	mov bx, 16
+	div bx
+	push dx
+	inc cx 
+
+	mov dx, 0
+	jmp label3
+
+print3:
+	cmp cx, 0
+	je exit3
+
+	pop dx
+
+	cmp dx, 9
+	jle continue3
+
+	add dx, 7
+
+continue3:
+	add dx, 48
+	mov [Temps], cx
+	mov [Temps+2], bx
+	
+
+
+
+	
+	mov  	bx, FileHandleDst
+	mov		ah,40h
+	mov		cx,1
+	mov     dh, 0
+	mov		FileBuffer,dl
+	lea		dx,FileBuffer
+	int		21h
+
+
+	mov bx, [Temps+2]
+	mov cx, [Temps]
+	dec cx
+	jmp print3
+exit3:
+	ret
+writeResult	endp	
 ;--------------------------------------------------------------------
 		end
 ;--------------------------------------------------------------------
