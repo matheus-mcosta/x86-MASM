@@ -1,4 +1,3 @@
-; 
 ;====================================================================
 ;  V 1: receber nome do arquivo para leitura
 ;  V 2: abrir arquivo e contar numero de bytes lidos
@@ -8,7 +7,7 @@
 ;  V 6: imprimir resultado
 ;  V 7: converter hex para ascii
 ;  V 8: criar arquivo de saida (nome do arquivo antes do ponto + .res)
-;   9: escrever resultado no arquivo de saida
+;  V 9: escrever resultado no arquivo de saida
 ;  V 10: fechar arquivo de saida
 ;   
 
@@ -62,7 +61,6 @@ MsgSoma				db	"Soma: ", 0
 
 MAXSTRING	equ		12
 String	db		MAXSTRING dup (?)
-H2D		db		10 dup (?)
 
 sw_n	dw	0
 sw_f	db	0
@@ -136,8 +134,10 @@ Next2:
     
     cmp		ax,0
 	je		Fim
-	cmp dl, '~'
-	jg 		Ciclo
+	cmp dl, 126
+	ja		Ciclo	; se for maior que o ~ (126), ignora e vai para o ciclo novamente
+
+
 
 	mov     bx,[Somaindex]
 
@@ -275,44 +275,32 @@ Fim2:
 
 		mov     ah, 0
         mov		al,[Soma+3]
-		
 		call hex
 
-		mov		dh,0
-		mov		dl,30h
-		call    writeResult		
-
+	
 		mov		dh,0
 		mov		dl,[Soma]
-		call    writeResult
-
-		mov		dh,0
-		mov     dl, 30h
-		
+		mov     bx, FileHandleDst
 		call    writeResult
 
 		mov		dh,0
 		mov     dl,[Soma+1]
-		call    writeResult
-
-		mov		dh,0
-		mov     dl,30h
+		mov     bx, FileHandleDst
 		call    writeResult
 
 		mov		dh,0
 		mov     dl,[Soma+2]
+		mov     bx, FileHandleDst
 		call    writeResult
-
-		mov		dh,0
-		mov     dl,30h
-		call    writeResult
-
+	
 		mov		dh,0
 		mov     dl,[Soma+3]
+		mov     bx, FileHandleDst
 		call    writeResult
 
 
-        .exit
+
+      
 
 
 CloseAndFinal:
@@ -720,8 +708,14 @@ Linebreak	endp
 
 writeResult	proc	near
 
+mov	ah,0
+	mov al, dl
+	mov cx, 0
+	mov dx, 0
+
 
 label3:
+	
 	cmp ax, 0
 	je print3
 
@@ -748,11 +742,68 @@ continue3:
 	add dx, 48
 	mov [Temps], cx
 	mov [Temps+2], bx
+	mov [Temps+3],dx
+
+
+
+; verifica se tem que ter um cr no final
+	mov 	bx, 1
+	add     Counter, bx
+	mov 	bx, [Counter]
+	cmp 	bx, 5
+	jne     proximasoma
+	mov 	bx, 1
+	mov 	[Counter],bx
+
+	
+	mov	    bx, FileHandleDst
+	;mov     dl, LF
+	;call Linebreak
+	mov     dh, 0
+	mov     dl, CR    ; habilitando os 2 pulava 2 linhas
+	call Linebreak			
+
+
+proximasoma:
+	
+; print  0 antes do caracter do resultado da soma
+		
+	
 	
 
+	mov dl, 30h
+	mov  	bx, FileHandleDst
+	mov		ah,40h
+	mov		cx,1
+	mov     dh, 0
+	mov		FileBuffer,dl
+	lea		dx,FileBuffer
+	int		21h
 
+
+; verifica se tem que ter um cr no final
+	
+	cmp 	bx, 5
+	jne     proximasoma2
+	mov 	bx, 1
+	mov 	[Counter],bx
 
 	
+	mov	    bx, FileHandleDst
+	;mov     dl, LF
+	;call Linebreak
+	mov     dh, 0
+	mov     dl, CR    ; habilitando os 2 pulava 2 linhas
+	call Linebreak			
+
+
+proximasoma2:
+	
+
+	
+	
+	mov  dx, [Temps+3]
+	; print um caracter do resultado da soma
 	mov  	bx, FileHandleDst
 	mov		ah,40h
 	mov		cx,1
